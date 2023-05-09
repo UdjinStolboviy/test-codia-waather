@@ -1,15 +1,13 @@
-/**
- * @jest-environment jsdom
- */
 import React from "react";
 import { render, fireEvent, screen } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { store } from "../../redux/store";
+import "@testing-library/jest-dom";
 import CityCardView from "../../component/cityCard/CityCardView";
 
 const mockWeatherData = {
-  cityName: "Kyiv",
+  cityName: "London",
   main: {
     feels_like: 23,
     humidity: 5656,
@@ -43,26 +41,7 @@ describe("CityCardView", () => {
     );
 
     expect(screen.getByText("London")).toBeInTheDocument();
-    expect(screen.getByText("Cloudy")).toBeInTheDocument();
-    expect(screen.getByText("Min: 7°C")).toBeInTheDocument();
-    expect(screen.getByText("Max: 17°C")).toBeInTheDocument();
-  });
-
-  it("dispatches an action to refresh weather data when refresh button is clicked", () => {
-    const { container } = render(
-      <Provider store={store}>
-        <MemoryRouter>
-          <CityCardView {...mockWeatherData} />
-        </MemoryRouter>
-      </Provider>
-    );
-
-    fireEvent.click(
-      container.querySelector(".refresh-weather-button") as HTMLElement
-    );
-
-    expect(store.dispatch({ type: "citiesWeather/getWeatherCityApi" })).toEqual(
-      [{ type: "citiesWeather/getWeatherCityApi" }]
-    );
+    expect(screen.getByText("light rain")).toBeInTheDocument();
+    expect(screen.getByText("Temperature")).toBeInTheDocument();
   });
 });

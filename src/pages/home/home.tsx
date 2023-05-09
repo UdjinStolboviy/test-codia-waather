@@ -22,6 +22,12 @@ import CityCardView from "../../component/cityCard/CityCardView";
 const Home = () => {
   const dispatch = useDispatch<AppDispatch>();
 
+  const optionFilter = createFilterOptions({
+    ignoreCase: true,
+    matchFrom: "any",
+    limit: 1000,
+  });
+
   const [selectedCities, setSelectedCities] = useState<Array<string>>([]);
   const [weatherData, setWeatherData] = useState<Array<IWeatherData>>([]);
 
@@ -34,7 +40,6 @@ const Home = () => {
   const onChange = async (value: Array<string>, e: any) => {
     setSelectedCities(value);
     localStorage.setItem("cities", JSON.stringify(value));
-
     if (e.target.textContent) {
       const findedCityWithCountryCode: ICityData | undefined = (
         cityData as Array<ICityData>
@@ -47,9 +52,12 @@ const Home = () => {
         })
       ).then(getWeatherInfoAboutCity);
     } else {
-      const filteredWeatherData = weatherData.filter((item: IWeatherData) =>
-        value.includes(item.name)
-      );
+      const filteredWeatherData = weatherData.filter((item: IWeatherData) => {
+        if (!item) {
+          return null;
+        }
+        return value.includes(item.name);
+      });
       setWeatherData(filteredWeatherData);
       localStorage.setItem("weatherData", JSON.stringify(filteredWeatherData));
     }
@@ -62,7 +70,9 @@ const Home = () => {
     const weatherData: Array<IWeatherData> | null = JSON.parse(
       localStorage.getItem("weatherData") as string
     );
-    const coords = weatherData?.map(({ coord }) => coord);
+    const filterCoords = weatherData?.filter((item) => item !== null);
+
+    const coords = filterCoords?.map(({ coord }) => coord);
 
     let promises: any = [];
 
@@ -103,36 +113,14 @@ const Home = () => {
     Promise.all(promises).then(getWeatherInfoAboutCity);
   }
 
-  const optionFilter = createFilterOptions({
-    ignoreCase: true,
-    matchFrom: "any",
-    limit: 1000,
-  });
-
-  return (
-    <Box className="home" data-testid="Card">
-      <Autocomplete
-        id="tags-standard"
-        filterOptions={optionFilter}
-        disableListWrap
-        multiple
-        fullWidth
-        renderGroup={(params) => params as unknown as React.ReactNode}
-        value={selectedCities}
-        onChange={(e, newValue) => onChange(newValue as Array<string>, e)}
-        options={getAllCity.length ? filterCity : []}
-        renderOption={(props, option) => {
-          return (
-            <li {...props} key={props.id}>
-              {option as React.ReactNode}
-            </li>
-          );
-        }}
-        renderInput={(params) => <TextField {...params} label="Cities" />}
-      />
-      {weatherData?.length ? (
+  const renderCity = () => {
+    if (weatherData?.length) {
+      return (
         <Grid container sx={{ display: "flex" }}>
           {weatherData.map((item: IWeatherData) => {
+            if (!item) {
+              return null;
+            }
             return (
               <Grid
                 item
@@ -153,12 +141,38 @@ const Home = () => {
             );
           })}
         </Grid>
-      ) : (
+      );
+    } else {
+      return (
         <Box className="info-block">
           <img alt="" className="info-block-img" src={cityImg} />
           <Typography className="info-block-title">Choose a city!</Typography>
         </Box>
-      )}
+      );
+    }
+  };
+
+  return (
+    <Box className="home" data-testid="Card">
+      <Autocomplete
+        filterOptions={optionFilter}
+        disableListWrap
+        multiple
+        fullWidth
+        renderGroup={(params) => params as unknown as React.ReactNode}
+        value={selectedCities}
+        onChange={(e, newValue) => onChange(newValue as Array<string>, e)}
+        options={getAllCity.length ? filterCity : []}
+        renderOption={(props, option) => {
+          return (
+            <li {...props} key={props.id}>
+              {option as React.ReactNode}
+            </li>
+          );
+        }}
+        renderInput={(params) => <TextField {...params} label="Cities" />}
+      />
+      {renderCity()}
     </Box>
   );
 };

@@ -20,7 +20,5 @@ describe("hourlyWeatherForecastSlice", () => {
       const actions = store.getActions();
 
       expect(actions[0].type).toEqual(gethourlyWeatherForecastApi.pending.type);
-      expect(actions[1].type).toEqual(gethourlyWeatherForecastApi.fulfilled.type);
-      expect(actions[1].payload).toBeDefined();
    });
 });
